@@ -1,67 +1,93 @@
-# Disaster Recovery Plan
+# Disaster Recovery
 
-## Overview
-This document outlines the procedures for recovering the Spring Boot application and its dependencies in case of a disaster.
-
-## Recovery Time Objectives (RTO)
-- Critical Systems: 4 hours
-- Non-Critical Systems: 24 hours
-
-## Recovery Point Objectives (RPO)
-- Database: 24 hours (daily backups)
-- Application: Real-time (stateless)
+This document outlines the disaster recovery procedures for the Spring Boot Docker Demo application.
 
 ## Backup Strategy
 
-1. Database Backups
-   - Daily automated backups
-   - Weekly full backups
-   - Monthly archive backups
-   - Backups stored in secure location
+### Database Backups
 
-2. Application Data
-   - Configuration files
-   - User data
-   - Application state
+1. **Automated Backups**
+   - Daily full backups
+   - Weekly retention
+   - Backup location: `/backups/postgres`
 
-3. Infrastructure
-   - Docker Compose configuration
-   - Nginx configuration
-   - Environment variables
+2. **Manual Backups**
+   ```bash
+   docker-compose exec db pg_dump -U postgres -d demo > backup_$(date +%Y%m%d).sql
+   ```
+
+### Application Data
+
+1. **Configuration Files**
+   - Backup `application.properties`
+   - Backup `nginx.conf`
+   - Backup `docker-compose.yml`
+
+2. **Docker Volumes**
+   - Backup PostgreSQL volume
+   - Backup application logs
 
 ## Recovery Procedures
 
 ### Database Recovery
 
-1. Stop the application:
-```bash
-docker-compose down
-```
+1. **From Automated Backup**
+   ```bash
+   docker-compose exec db psql -U postgres -d demo < backup_file.sql
+   ```
 
-2. Restore the database:
-```bash
-docker-compose up -d db
-docker exec -i $(docker-compose ps -q db) psql -U postgres -d demo < backup.sql
-```
-
-3. Restart the application:
-```bash
-docker-compose up -d
-```
+2. **From Manual Backup**
+   ```bash
+   docker-compose exec db psql -U postgres -d demo < backup_YYYYMMDD.sql
+   ```
 
 ### Application Recovery
 
-1. Pull the latest code:
+1. **Restore Configuration**
+   - Copy backed up configuration files
+   - Update environment variables if needed
+
+2. **Restart Services**
+   ```bash
+   docker-compose down
+   docker-compose up -d
+   ```
+
+## Verification
+
+1. **Database Verification**
+   ```bash
+   docker-compose exec db psql -U postgres -d demo -c "SELECT COUNT(*) FROM users;"
+   ```
+
+2. **Application Verification**
+   ```bash
+   curl http://localhost:8080/actuator/health
+   ```
+
+## Backup Verification
+
+Use the provided script to verify backup integrity:
 ```bash
-git pull origin main
+./scripts/verify-backup.sh <backup-file>
 ```
 
-2. Rebuild and restart:
-```bash
-docker-compose down
-docker-compose build
-docker-compose up -d
-```
+## Emergency Contacts
+
+- Database Administrator: [Contact Info]
+- System Administrator: [Contact Info]
+- Application Support: [Contact Info]
+
+## Recovery Time Objectives (RTO)
+
+- Critical Systems: 4 hours
+- Non-Critical Systems: 24 hours
+
+## Recovery Point Objectives (RPO)
+
+- Database: 24 hours
+- Application Configuration: 24 hours
+- Logs: 7 days
 
 ## Monitoring and Alerts
 
@@ -89,10 +115,6 @@ docker-compose up -d
 - Recovery procedures
 - Contact information
 - Escalation procedures
-
-## Kubernetes Deployment
-
-For Kubernetes-specific disaster recovery procedures, see the [spring-boot-docker-demo-k8s](https://github.com/gihrlk/spring-boot-docker-demo-k8s) repository.
 
 ## Communication Plan
 

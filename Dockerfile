@@ -10,5 +10,11 @@ FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/target/*.jar app.jar
+
+# Add labels for GitHub Container Registry
+LABEL org.opencontainers.image.source="https://github.com/gihrlk/spring-boot-docker-demo"
+LABEL org.opencontainers.image.description="Spring Boot application with PostgreSQL and Nginx"
+LABEL org.opencontainers.image.licenses="MIT"
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"] 

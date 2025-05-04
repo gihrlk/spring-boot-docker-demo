@@ -1,46 +1,29 @@
-# System Architecture Overview
+# Architecture Overview
 
-## Overview
+## System Components
 
-The Spring Boot Docker Demo is a containerized application that demonstrates best practices for building and deploying Spring Boot applications with Docker. The system consists of several components working together to provide a robust and scalable solution.
+The Spring Boot Docker Demo application consists of the following components:
 
-## Architecture Diagram
+1. **Nginx Reverse Proxy**
+   - Handles incoming HTTP requests
+   - Provides SSL termination
+   - Implements rate limiting
+   - Serves static content
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │     │                 │
-│  Nginx Reverse  │────▶│  Spring Boot    │────▶│   PostgreSQL    │
-│     Proxy       │     │  Application    │     │   Database      │
-│                 │     │                 │     │                 │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-```
+2. **Spring Boot Application**
+   - RESTful API endpoints
+   - Business logic
+   - Data access layer
+   - Health checks
 
-## Components
-
-### 1. Nginx Reverse Proxy
-- Handles incoming HTTP requests
-- Provides SSL/TLS termination
-- Implements load balancing
-- Manages static content
-- Handles request compression
-
-### 2. Spring Boot Application
-- RESTful API endpoints
-- Business logic implementation
-- Database interactions
-- Health monitoring
-- Metrics collection
-
-### 3. PostgreSQL Database
-- Data persistence
-- Transaction management
-- Data integrity
-- Backup and recovery
+3. **PostgreSQL Database**
+   - Persistent data storage
+   - Automated backups
+   - Data replication
 
 ## Technology Stack
 
-- **Application Framework**: Spring Boot 3.4.5
-- **Language**: Java 21
+- **Backend**: Spring Boot 3.4.5 (Java 21)
 - **Database**: PostgreSQL 16
 - **Web Server**: Nginx
 - **Containerization**: Docker
@@ -48,88 +31,55 @@ The Spring Boot Docker Demo is a containerized application that demonstrates bes
 
 ## Key Features
 
-1. **Containerization**
-   - Multi-stage Docker builds
-   - Optimized image sizes
-   - Environment-specific configurations
-
-2. **Database Management**
-   - Persistent storage
-   - Automated backups
-   - Data verification
-
-3. **Security**
-   - SSL/TLS encryption
-   - Secure configuration management
-   - Access control
-
-4. **Monitoring**
-   - Health checks
-   - Metrics collection
-   - Log aggregation
-
-5. **Scalability**
-   - Horizontal scaling capability
-   - Load balancing
-   - Resource management
+- Containerized deployment
+- Health monitoring
+- Automated backups
+- Data persistence
+- Load balancing
+- Security features
 
 ## Data Flow
 
-1. **Request Flow**
-   - Client request → Nginx
-   - Nginx → Spring Boot application
-   - Application → Database
-   - Response follows reverse path
-
-2. **Data Persistence**
-   - Application data → PostgreSQL
-   - Backup data → Persistent storage
-   - Logs → Log aggregation
+1. Client request → Nginx
+2. Nginx → Spring Boot application
+3. Spring Boot → PostgreSQL
+4. Response flows back through the same path
 
 ## Deployment Architecture
 
-The application is designed to be deployed in two ways:
-
-1. **Local Development**
-   - Docker Compose for local setup
-   - Development-specific configurations
-   - Hot-reload support
-
-2. **Production Deployment**
-   - Kubernetes deployment (separate repository)
-   - Production-grade configurations
-   - High availability setup
+```
+                    ┌─────────────┐
+                    │    Nginx    │
+                    │  Reverse    │
+                    │   Proxy     │
+                    └──────┬──────┘
+                           │
+                    ┌──────┴──────┐
+                    │  Spring     │
+                    │   Boot      │
+                    │ Application │
+                    └──────┬──────┘
+                           │
+                    ┌──────┴──────┐
+                    │ PostgreSQL  │
+                    │  Database   │
+                    └─────────────┘
+```
 
 ## Security Considerations
 
-1. **Network Security**
-   - Reverse proxy protection
-   - SSL/TLS encryption
-   - Network isolation
-
-2. **Data Security**
-   - Encrypted data at rest
-   - Secure credential management
-   - Regular security updates
-
-3. **Application Security**
-   - Input validation
-   - Authentication/Authorization
-   - Security headers
+- SSL/TLS encryption
+- Rate limiting
+- Input validation
+- SQL injection prevention
+- XSS protection
+- CSRF protection
 
 ## Monitoring and Maintenance
 
-1. **Health Monitoring**
-   - Application health checks
-   - Database connectivity
-   - Resource utilization
-
-2. **Logging**
-   - Application logs
-   - Access logs
-   - Error tracking
-
-3. **Maintenance**
-   - Regular updates
-   - Backup verification
-   - Performance optimization 
+- Health check endpoints
+- Log aggregation
+- Performance metrics
+- Backup verification
+- Regular updates
+- Security patches 

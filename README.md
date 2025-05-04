@@ -23,7 +23,7 @@ A production-ready Spring Boot application with Docker, PostgreSQL, and Nginx.
 
 1. Clone the repository:
 ```bash
-git clone <your-gitlab-repo-url>
+git clone https://github.com/gihrlk/spring-boot-docker-demo.git
 cd spring-boot-docker-demo
 ```
 
@@ -47,6 +47,8 @@ docker-compose up -d
 ```
 .
 ├── src/                    # Spring Boot application source
+├── docs/                   # Documentation
+├── scripts/                # Utility scripts
 ├── nginx.conf             # Nginx configuration
 ├── docker-compose.yml     # Docker Compose configuration
 ├── Dockerfile            # Multi-stage Docker build
