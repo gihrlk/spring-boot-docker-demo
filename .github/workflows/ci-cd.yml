@@ -131,15 +131,12 @@ jobs:
         name: app-jar
         path: target
     
-    - name: Build and test Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: false
-        tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
-        load: true
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+    - name: Build Docker image
+      run: |
+        echo "Building Docker image..."
+        docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        echo "Built image:"
+        docker images
     
     - name: Run Container Tests
       run: |
