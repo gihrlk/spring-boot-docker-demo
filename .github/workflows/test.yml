@@ -35,25 +35,21 @@ jobs:
         distribution: 'temurin'
         cache: maven
     
-    - name: Build with Maven
-      run: mvn -B clean package --file pom.xml
+    - name: Build and Test with Maven
+      run: ./mvnw -B clean verify
       env:
         SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
         SPRING_DATASOURCE_USERNAME: postgres
         SPRING_DATASOURCE_PASSWORD: postgres
-    
-    - name: Run Unit Tests
-      run: mvn test
-    
-    - name: Run Integration Tests
-      run: mvn verify -Dspring.profiles.active=test
     
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results
-        path: target/surefire-reports/
+        path: |
+          target/surefire-reports/
+          target/failsafe-reports/
     
     - name: Build Docker Image
       run: docker build -t spring-boot-docker-demo:${{ github.sha }} .
