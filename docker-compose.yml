@@ -1,56 +1,162 @@
 version: '3.8'
 
 services:
-  nginx:
-    image: nginx:alpine
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - app
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
 
   app:
     build: .
-    expose:
-      - "8080"
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/demo
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
+      - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`api.example.com`)"
+      - "traefik.http.routers.app.entrypoints=websecure"
+    networks:
+      - traefik-public
+      - app-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   db:
     image: postgres:16-alpine
-    ports:
-      - "5432:5432"
+    command: >
+      postgres 
+      -c shared_buffers=256MB 
+      -c max_connections=100 
+      -c effective_cache_size=1GB 
+      -c maintenance_work_mem=64MB
     environment:
       - POSTGRES_DB=demo
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+    networks:
+      - app-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - monitoring
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+
+  backup:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/source:ro
+      - backup_data:/backup
+    command: >
+      sh -c '
+        while true; do
+          pg_dump -h db -U postgres -d demo > /backup/backup-$$(date +%Y%m%d-%H%M%S).sql
+          sleep 86400
+        done
+      '
+    networks:
+      - app-network
+
+networks:
+  traefik-public:
+    external: true
+  app-network:
+    internal: true
+    driver: overlay
+    driver_opts:
+      encrypted: "true"
+    attachable: true
+  monitoring:
+    internal: true
+    driver: overlay
+    attachable: true
 
 volumes:
-  postgres_data: 
+  postgres_data:
+  grafana_data:
+  backup_data: 

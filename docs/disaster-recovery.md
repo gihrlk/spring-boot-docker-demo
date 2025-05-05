@@ -20,12 +20,14 @@ This document outlines the disaster recovery procedures for the Spring Boot Dock
 
 1. **Configuration Files**
    - Backup `application.properties`
-   - Backup `nginx.conf`
+   - Backup `traefik.yml`
    - Backup `docker-compose.yml`
 
 2. **Docker Volumes**
    - Backup PostgreSQL volume
    - Backup application logs
+   - Backup Prometheus data
+   - Backup Grafana dashboards
 
 ## Recovery Procedures
 
@@ -65,6 +67,12 @@ This document outlines the disaster recovery procedures for the Spring Boot Dock
    curl http://localhost:8080/actuator/health
    ```
 
+3. **Monitoring Verification**
+   ```bash
+   curl http://localhost:9090/-/healthy # Prometheus
+   curl http://localhost:3000/api/health # Grafana
+   ```
+
 ## Backup Verification
 
 Use the provided script to verify backup integrity:
@@ -102,6 +110,12 @@ Use the provided script to verify backup integrity:
    - Error rates
    - Resource usage
    - Health checks
+
+3. Prometheus alerts
+   - Service availability
+   - Performance bottlenecks
+   - Resource utilization
+   - Error rates
 
 ## Testing Recovery
 

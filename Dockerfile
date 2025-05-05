@@ -13,7 +13,7 @@ COPY --from=build /app/target/*.jar app.jar
 
 # Add labels for GitHub Container Registry
 LABEL org.opencontainers.image.source="https://github.com/gihrlk/spring-boot-docker-demo"
-LABEL org.opencontainers.image.description="Spring Boot application with PostgreSQL and Nginx"
+LABEL org.opencontainers.image.description="Spring Boot application with PostgreSQL, Traefik, and monitoring"
 LABEL org.opencontainers.image.licenses="MIT"
 
 EXPOSE 8080

@@ -4,11 +4,11 @@
 
 The Spring Boot Docker Demo application consists of the following components:
 
-1. **Nginx Reverse Proxy**
+1. **Traefik Reverse Proxy**
    - Handles incoming HTTP requests
    - Provides SSL termination
    - Implements rate limiting
-   - Serves static content
+   - Dynamic service discovery
 
 2. **Spring Boot Application**
    - RESTful API endpoints
@@ -21,13 +21,19 @@ The Spring Boot Docker Demo application consists of the following components:
    - Automated backups
    - Data replication
 
+4. **Monitoring Stack**
+   - Prometheus for metrics collection
+   - Grafana for visualization
+   - Spring Boot Actuator endpoints
+
 ## Technology Stack
 
-- **Backend**: Spring Boot 3.4.5 (Java 21)
+- **Backend**: Spring Boot 3.x (Java 21)
 - **Database**: PostgreSQL 16
-- **Web Server**: Nginx
+- **Reverse Proxy**: Traefik
 - **Containerization**: Docker
 - **Orchestration**: Docker Compose
+- **Monitoring**: Prometheus and Grafana
 
 ## Key Features
 
@@ -37,19 +43,21 @@ The Spring Boot Docker Demo application consists of the following components:
 - Data persistence
 - Load balancing
 - Security features
+- Real-time metrics
 
 ## Data Flow
 
-1. Client request → Nginx
-2. Nginx → Spring Boot application
+1. Client request → Traefik
+2. Traefik → Spring Boot application
 3. Spring Boot → PostgreSQL
 4. Response flows back through the same path
+5. Metrics → Prometheus → Grafana
 
 ## Deployment Architecture
 
 ```
                     ┌─────────────┐
-                    │    Nginx    │
+                    │   Traefik   │
                     │  Reverse    │
                     │   Proxy     │
                     └──────┬──────┘
@@ -64,6 +72,13 @@ The Spring Boot Docker Demo application consists of the following components:
                     │ PostgreSQL  │
                     │  Database   │
                     └─────────────┘
+                           │
+              ┌────────────┴───────────┐
+              │                        │
+      ┌───────┴────────┐      ┌───────┴────────┐
+      │  Prometheus    │      │     Grafana    │
+      │  Monitoring    │──────│  Visualization │
+      └────────────────┘      └────────────────┘
 ```
 
 ## Security Considerations
@@ -74,6 +89,8 @@ The Spring Boot Docker Demo application consists of the following components:
 - SQL injection prevention
 - XSS protection
 - CSRF protection
+- Container security
+- Network isolation
 
 ## Monitoring and Maintenance
 
@@ -82,4 +99,5 @@ The Spring Boot Docker Demo application consists of the following components:
 - Performance metrics
 - Backup verification
 - Regular updates
-- Security patches 
+- Security patches
+- Resource utilization alerts 
